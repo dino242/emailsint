@@ -26,9 +26,12 @@ BANNER = r"""
  | __|  \/  | /_\ |_ _| |  / __| __| \| |_   _|
  | _|| |\/| |/ _ \ | || |__\__ \ _|| .` | | |  
  |___|_|  |_/_/ \_\___|____|___/___|_|\_| |_|  
-  v2.1 — Made by dino242
+  v2.1 — Plattform-Scan + MX + WHOIS + Username + Auto-Proxies
 """
 
+# ─── Automatische Proxy-Verwaltung ───────────────────────────────────────────
+# Lädt kostenlose Proxies von öffentlichen Listen.
+# Kein manuelles proxies.txt nötig.
 
 PROXY_SOURCES = [
     "https://raw.githubusercontent.com/TheSpeedX/PROXY-List/master/http.txt",
@@ -689,9 +692,13 @@ async def run(email: str, proxy_file, timeout: int, output_json, output_html, ve
 
     # ── Proxy-Verwaltung (automatisch oder manuell) ───────────────────────────
     proxies = []
+    no_proxy = os.environ.get("NO_AUTO_PROXY", "0") == "1"
+
     if proxy_file:
         proxies = load_proxies(proxy_file)
         print(Fore.BLUE + f"  [*] {len(proxies)} Proxies aus Datei geladen\n")
+    elif no_proxy:
+        print(Fore.YELLOW + "  [*] Scan ohne Proxies\n")
     else:
         print(Fore.BLUE + "  [*] Lade automatische Proxies...")
         raw = await fetch_auto_proxies(limit=60)
