@@ -26,7 +26,7 @@ BANNER = r"""
  | __|  \/  | /_\ |_ _| |  / __| __| \| |_   _|
  | _|| |\/| |/ _ \ | || |__\__ \ _|| .` | | |  
  |___|_|  |_/_/ \_\___|____|___/___|_|\_| |_|  
-  v2.1 — Plattform-Scan + MX + WHOIS + Username + Auto-Proxies
+  v1.0 // Made by dino242
 """
 
 # ─── Automatische Proxy-Verwaltung ───────────────────────────────────────────
