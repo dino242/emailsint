@@ -85,9 +85,9 @@ Wenn möglich wird der **Benutzername** direkt aus der Profilseite extrahiert (z
 
 ---
 
-## 🔄 Proxy-Format
+## 🔄 Proxy format
 
-Erstelle eine Datei `proxies.txt`:
+Create a file `proxies.txt`:
 
 ```
 http://123.45.67.89:8080
@@ -97,7 +97,7 @@ socks5://11.22.33.44:1080
 
 ---
 
-## 📁 Dateien im Repo
+## 📁 Files of the repo
 
 ```
 emailsint/
@@ -110,12 +110,21 @@ emailsint/
 
 ---
 
-## ⚠️ Hinweis
+## ✨ Star history
 
-Dieses Tool ist ausschließlich für die **eigene E-Mail-Adresse** gedacht, um eigene Accounts zu finden. Die Verwendung für fremde E-Mail-Adressen ohne Erlaubnis ist nicht gestattet.
+## Star History
+
+<a href="https://www.star-history.com/?repos=dino242%2Femailsint&type=date&legend=top-left">
+ <picture>
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/image?repos=dino242/emailsint&type=date&theme=dark&legend=top-left" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/image?repos=dino242/emailsint&type=date&legend=top-left" />
+   <img alt="Star History Chart" src="https://api.star-history.com/image?repos=dino242/emailsint&type=date&legend=top-left" />
+ </picture>
+</a>
+
 
 ---
 
-## 📄 Lizenz
+## 📄 License
 
 MIT
