@@ -112,8 +112,6 @@ emailsint/
 
 ## ✨ Star history
 
-## Star History
-
 <a href="https://www.star-history.com/?repos=dino242%2Femailsint&type=date&legend=top-left">
  <picture>
    <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/image?repos=dino242/emailsint&type=date&theme=dark&legend=top-left" />
