@@ -26,12 +26,9 @@ BANNER = r"""
  | __|  \/  | /_\ |_ _| |  / __| __| \| |_   _|
  | _|| |\/| |/ _ \ | || |__\__ \ _|| .` | | |  
  |___|_|  |_/_/ \_\___|____|___/___|_|\_| |_|  
-  v2.1 — Plattform-Scan + MX + WHOIS + Username + Auto-Proxies
+  v2.1 — Made by dino242
 """
 
-# ─── Automatische Proxy-Verwaltung ───────────────────────────────────────────
-# Lädt kostenlose Proxies von öffentlichen Listen.
-# Kein manuelles proxies.txt nötig.
 
 PROXY_SOURCES = [
     "https://raw.githubusercontent.com/TheSpeedX/PROXY-List/master/http.txt",
