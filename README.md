@@ -1,125 +1,124 @@
 # emailsint 🔍
 
-> Finde heraus, auf welchen Plattformen deine E-Mail-Adresse registriert ist.  
-> Reines Scraping — kein externer API-Dienst nötig.
+> Find which platforms are registered with your email address.  
+> Pure scraping — no API keys needed. 40+ platforms checked.
 
 ---
 
-## 🚀 Google Cloud Shell — Schnellstart
-
-Öffne [shell.cloud.google.com](https://shell.cloud.google.com) und führe folgendes aus:
+## ⚡ One-Line Install & Run
 
 ```bash
-# 1. Repo klonen
-git clone https://github.com/dino242/emailsint.git
-cd emailsint
-
-# 2. Starten — macht alles automatisch (Setup + Scan)
-bash run.sh deine@email.com
+git clone https://github.com/dino242/emailsint.git && cd emailsint && bash run.sh
 ```
 
-**Fertig.** `run.sh` installiert alle Abhängigkeiten und startet den Scan sofort.
+That's it. The menu will appear automatically.
 
 ---
 
-## 📋 Alle Benutzungsarten
+## 📋 What it does
+
+### 🔎 Email Analysis
+| Check | Details |
+|-------|---------|
+| **Provider** | Detects Gmail, Outlook, ProtonMail, GMX, iCloud, etc. |
+| **MX Record** | Verifies the domain can receive email (DNS lookup) |
+| **WHOIS** | Domain creation date, registrar, country |
+
+### 👤 Gravatar OSINT
+Fetches the full Gravatar profile linked to the email hash:
+- Display name & username
+- Location & bio
+- Linked external accounts (Twitter, LinkedIn, etc.)
+- Personal URLs
+- Avatar image
+
+### 🌐 Platform Scan (40+ sites)
+
+| Category | Platforms |
+|----------|-----------|
+| Tech | GitHub, GitLab, Gravatar, Codecademy, HackerNews |
+| Social | Twitter/X, Instagram, Reddit, Tumblr, Pinterest, Snapchat, VK, Flickr, Foursquare, Quora, Meetup |
+| Professional | LinkedIn, Xing, Freelancer, Upwork |
+| Gaming | Twitch, Steam, Epic Games, Roblox, Ubisoft, EA/Origin |
+| Music | Spotify, SoundCloud, Last.fm, Deezer |
+| Communication | Discord, Skype, Zoom, Slack |
+| Cloud | Dropbox, Notion, Evernote, Trello |
+| Finance | PayPal, Coinbase, Binance |
+| Creative | Adobe, Behance, DeviantArt, Canva, 500px |
+| Shopping | Etsy, eBay, Amazon |
+
+### 📊 Reports
+- **HTML report** — visual dark-theme dashboard with Gravatar profile
+- **JSON report** — full machine-readable output
+
+### 🔄 Auto Proxies
+Automatically fetches and tests free proxies from public lists. Falls back gracefully if none work — no manual setup needed.
+
+---
+
+## 🖥️ Google Cloud Shell — Usage
 
 ```bash
-# Einfacher Scan
-bash run.sh deine@email.com
-
-# Mit Proxy-Liste
-bash run.sh deine@email.com proxies.txt
-
-# Mit eigenem HTML-Report Namen
-bash run.sh deine@email.com proxies.txt mein-report.html
-
-# Nur das Python-Script direkt (nach erstem Setup)
-python3 emailsint.py deine@email.com
-python3 emailsint.py deine@email.com -v
-python3 emailsint.py deine@email.com -p proxies.txt --html report.html -o report.json
+# Clone and start
+git clone https://github.com/dino242/emailsint.git && cd emailsint && bash run.sh
 ```
 
----
-
-## ⚙️ Alle Parameter (python3 emailsint.py)
-
-| Parameter | Beschreibung | Standard |
-|-----------|-------------|---------|
-| `email` | Zu prüfende E-Mail (Pflicht) | — |
-| `-p proxies.txt` | Proxy-Datei (eine pro Zeile) | kein |
-| `-t 15` | Timeout pro Request (Sekunden) | 12 |
-| `-o report.json` | JSON-Report speichern | kein |
-| `--html report.html` | HTML-Report speichern | kein |
-| `-v` | Auch nicht gefundene Plattformen zeigen | aus |
-
----
-
-## 🔍 Was das Tool analysiert
-
-### 1. E-Mail-Analyse
-- **Anbieter erkennen** — Gmail, Outlook, ProtonMail, GMX, usw.
-- **MX-Check** — Prüft ob die E-Mail-Domain erreichbar ist (DNS)
-- **WHOIS** — Wann wurde die Domain registriert, welcher Registrar, welches Land
-
-### 2. Plattform-Scan (30+ Seiten)
-
-| Kategorie | Plattformen |
-|-----------|------------|
-| Tech | GitHub, GitLab, Gravatar |
-| Social | Twitter/X, Tumblr, Pinterest, Reddit, Instagram, Snapchat, VK, Flickr |
-| Professional | LinkedIn, Xing, Freelancer |
-| Gaming | Twitch, Steam, Epic Games, Roblox |
-| Music | Spotify, SoundCloud |
-| Communication | Discord, Telegram |
-| Cloud | Dropbox, Notion, Evernote |
-| Finance | PayPal |
-| Creative | Adobe, Behance, DeviantArt |
-| Shopping | Etsy, eBay |
-
-### 3. Benutzername scrapen
-Wenn möglich wird der **Benutzername** direkt aus der Profilseite extrahiert (z.B. Gravatar).
-
-### 4. HTML-Report
-Übersichtlicher Report der gespeichert und im Browser geöffnet werden kann.
-
----
-
-## 🔄 Proxy format
-
-Create a file `proxies.txt`:
-
+**Menu options:**
 ```
-http://123.45.67.89:8080
-http://user:passwort@98.76.54.32:3128
-socks5://11.22.33.44:1080
+[1] Quick scan
+[2] Scan + save HTML report
+[3] Scan + save JSON report
+[4] Full scan (HTML + JSON + verbose)
+[5] Exit
 ```
 
+> **HTML reports** — In Google Cloud Shell, open the **Editor** tab and click the `.html` file to preview it in your browser.
+
 ---
 
-## 📁 Files of the repo
+## ⚙️ Manual usage (after first run)
+
+```bash
+# Basic
+python3 emailsint.py your@email.com
+
+# With HTML + JSON reports
+python3 emailsint.py your@email.com --html report.html -o report.json
+
+# Verbose (shows not-found platforms too)
+python3 emailsint.py your@email.com -v
+
+# With your own proxy file
+python3 emailsint.py your@email.com -p proxies.txt
+```
+
+| Argument | Description | Default |
+|----------|-------------|---------|
+| `email` | Email to scan (required) | — |
+| `-p file` | Proxy list file (one per line) | auto |
+| `-t 15` | Request timeout in seconds | 12 |
+| `-o file.json` | Save JSON report | — |
+| `--html file.html` | Save HTML report | — |
+| `-v` | Verbose output | off |
+
+---
+
+## 📁 Repo structure
 
 ```
 emailsint/
-├── emailsint.py      ← Hauptscript (Scan-Logik)
-├── run.sh            ← Alles-in-einem: Setup + Start
-├── requirements.txt  ← Python-Pakete
+├── emailsint.py      ← Main script (all scan logic)
+├── run.sh            ← Auto-setup + interactive menu
+├── requirements.txt  ← Python dependencies
 ├── .gitignore
 └── README.md
 ```
 
 ---
 
-## ✨ Star history
+## ⚠️ Legal notice
 
-<a href="https://www.star-history.com/?repos=dino242%2Femailsint&type=date&legend=top-left">
- <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/image?repos=dino242/emailsint&type=date&theme=dark&legend=top-left" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/image?repos=dino242/emailsint&type=date&legend=top-left" />
-   <img alt="Star History Chart" src="https://api.star-history.com/image?repos=dino242/emailsint&type=date&legend=top-left" />
- </picture>
-</a>
-
+This tool is intended **only for scanning your own email address** to find your own registered accounts. Do not use it on email addresses that are not yours.
 
 ---
 
