@@ -8,7 +8,7 @@
 ## ⚡ One-Line Install & Run
 
 ```bash
-git clone https://github.com/dino242/emailsint.git && cd emailsint && bash run.sh
+git clone https://github.com/dino242/emailsint.git && cd emailsint && bash Run.sh
 ```
 
 That's it. The menu will appear automatically.
