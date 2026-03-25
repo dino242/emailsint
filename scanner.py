@@ -1,6 +1,7 @@
 import asyncio
 import aiohttp
 import re
+import os
 from proxy_manager import pick, is_ngrok_proxy, get_ngrok_headers
 
 
@@ -10,6 +11,33 @@ UA = (
     "Chrome/124.0.0.0 Safari/537.36"
 )
 
+# Dashboard push config (auto-read from env or set via run_scan)
+DASHBOARD_URL  = os.environ.get("PROXY_URL", "")
+DASHBOARD_AUTH = os.environ.get("PROXY_AUTH", "emailsint2024")
+
+
+# ─── Dashboard Push ───────────────────────────────────────────────────────────
+
+async def _push_to_dashboard(session: aiohttp.ClientSession,
+                              payload: dict) -> None:
+    """Push a result or status update to the proxy server dashboard."""
+    if not DASHBOARD_URL:
+        return
+    endpoint = DASHBOARD_URL.rstrip("/") + "/push"
+    try:
+        async with session.post(
+            endpoint,
+            json=payload,
+            headers={"X-Proxy-Auth": DASHBOARD_AUTH},
+            timeout=aiohttp.ClientTimeout(total=5),
+            ssl=False,
+        ) as _:
+            pass
+    except Exception:
+        pass  # Dashboard push is best-effort, never block the scan
+
+
+# ─── Request helpers ─────────────────────────────────────────────────────────
 
 async def _request_via_ngrok(session: aiohttp.ClientSession,
                               ngrok_entry: str,
@@ -20,9 +48,9 @@ async def _request_via_ngrok(session: aiohttp.ClientSession,
                               timeout: int) -> tuple:
     proxy_url, auth_token = get_ngrok_headers(ngrok_entry)
     req_headers = dict(headers)
-    req_headers["X-Proxy-Auth"]   = auth_token
-    req_headers["X-Target-URL"]   = target_url
-    req_headers["User-Agent"]     = UA
+    req_headers["X-Proxy-Auth"] = auth_token
+    req_headers["X-Target-URL"] = target_url
+    req_headers["User-Agent"]   = UA
 
     endpoint = f"{proxy_url}/proxy"
     kw = dict(
@@ -59,6 +87,8 @@ async def _request_direct(session: aiohttp.ClientSession,
     async with getattr(session, method)(url, **kw) as resp:
         return resp.status, await resp.text(errors="ignore")
 
+
+# ─── Platform check ───────────────────────────────────────────────────────────
 
 async def check_platform(session: aiohttp.ClientSession,
                          platform: dict,
@@ -116,19 +146,48 @@ async def check_platform(session: aiohttp.ClientSession,
                 "found": False, "username": None, "error": str(ex)[:70]}
 
 
+# ─── Main scan runner ─────────────────────────────────────────────────────────
+
 async def run_scan(platforms: list, email: str,
                    proxies: list, timeout: int,
-                   on_result=None) -> list:
-    results = []
+                   on_result=None,
+                   dashboard_url: str = None,
+                   dashboard_auth: str = None) -> list:
+    global DASHBOARD_URL, DASHBOARD_AUTH
+
+    # Allow overriding dashboard URL per scan call
+    if dashboard_url:
+        DASHBOARD_URL = dashboard_url
+    if dashboard_auth:
+        DASHBOARD_AUTH = dashboard_auth
+
+    results   = []
     connector = aiohttp.TCPConnector(ssl=False, limit=35)
+
     async with aiohttp.ClientSession(connector=connector) as session:
+        # Tell dashboard: new scan starting
+        await _push_to_dashboard(session, {
+            "reset":   True,
+            "email":   email,
+            "running": True,
+        })
+
         tasks = [
             check_platform(session, p, email, pick(proxies, i), timeout)
             for i, p in enumerate(platforms)
         ]
+
         for coro in asyncio.as_completed(tasks):
             r = await coro
             results.append(r)
+
+            # Push result to dashboard in real-time
+            await _push_to_dashboard(session, {"result": r})
+
             if on_result:
                 on_result(r)
+
+        # Tell dashboard: scan finished
+        await _push_to_dashboard(session, {"running": False})
+
     return results
