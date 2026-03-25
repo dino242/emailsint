@@ -1,126 +1,113 @@
 # emailsint 🔍
 
 > Find which platforms are registered with your email address.  
-> Pure scraping — no API keys needed. 40+ platforms checked.
+> Pure scraping — no API keys needed. **88 platforms** checked.
 
 ---
 
 ## ⚡ One-Line Install & Run
 
 ```bash
-git clone https://github.com/dino242/emailsint.git && cd emailsint && bash Run.sh
-```
-
-That's it. The menu will appear automatically.
-
----
-
-## 📋 What it does
-
-### 🔎 Email Analysis
-| Check | Details |
-|-------|---------|
-| **Provider** | Detects Gmail, Outlook, ProtonMail, GMX, iCloud, etc. |
-| **MX Record** | Verifies the domain can receive email (DNS lookup) |
-| **WHOIS** | Domain creation date, registrar, country |
-
-### 👤 Gravatar OSINT
-Fetches the full Gravatar profile linked to the email hash:
-- Display name & username
-- Location & bio
-- Linked external accounts (Twitter, LinkedIn, etc.)
-- Personal URLs
-- Avatar image
-
-### 🌐 Platform Scan (40+ sites)
-
-| Category | Platforms |
-|----------|-----------|
-| Tech | GitHub, GitLab, Gravatar, Codecademy, HackerNews |
-| Social | Twitter/X, Instagram, Reddit, Tumblr, Pinterest, Snapchat, VK, Flickr, Foursquare, Quora, Meetup |
-| Professional | LinkedIn, Xing, Freelancer, Upwork |
-| Gaming | Twitch, Steam, Epic Games, Roblox, Ubisoft, EA/Origin |
-| Music | Spotify, SoundCloud, Last.fm, Deezer |
-| Communication | Discord, Skype, Zoom, Slack |
-| Cloud | Dropbox, Notion, Evernote, Trello |
-| Finance | PayPal, Coinbase, Binance |
-| Creative | Adobe, Behance, DeviantArt, Canva, 500px |
-| Shopping | Etsy, eBay, Amazon |
-
-### 📊 Reports
-- **HTML report** — visual dark-theme dashboard with Gravatar profile
-- **JSON report** — full machine-readable output
-
-### 🔄 Auto Proxies
-Automatically fetches and tests free proxies from public lists. Falls back gracefully if none work — no manual setup needed.
-
----
-
-## 🖥️ Google Cloud Shell — Usage
-
-```bash
-# Clone and start
 git clone https://github.com/dino242/emailsint.git && cd emailsint && bash run.sh
 ```
 
-**Menu options:**
-```
-[1] Quick scan
-[2] Scan + save HTML report
-[3] Scan + save JSON report
-[4] Full scan (HTML + JSON + verbose)
-[5] Exit
-```
-
-> **HTML reports** — In Google Cloud Shell, open the **Editor** tab and click the `.html` file to preview it in your browser.
-
 ---
 
-## ⚙️ Manual usage (after first run)
-
-```bash
-# Basic
-python3 emailsint.py your@email.com
-
-# With HTML + JSON reports
-python3 emailsint.py your@email.com --html report.html -o report.json
-
-# Verbose (shows not-found platforms too)
-python3 emailsint.py your@email.com -v
-
-# With your own proxy file
-python3 emailsint.py your@email.com -p proxies.txt
-```
-
-| Argument | Description | Default |
-|----------|-------------|---------|
-| `email` | Email to scan (required) | — |
-| `-p file` | Proxy list file (one per line) | auto |
-| `-t 15` | Request timeout in seconds | 12 |
-| `-o file.json` | Save JSON report | — |
-| `--html file.html` | Save HTML report | — |
-| `-v` | Verbose output | off |
-
----
-
-## 📁 Repo structure
+## 📁 File Structure
 
 ```
 emailsint/
-├── emailsint.py      ← Main script (all scan logic)
-├── run.sh            ← Auto-setup + interactive menu
-├── requirements.txt  ← Python dependencies
-├── .gitignore
-└── README.md
+├── emailsint.py       ← Main entry point
+├── platforms.py       ← All 88 platform definitions
+├── osint.py           ← MX, WHOIS, Gravatar, provider detection
+├── scanner.py         ← Async scanner + ngrok routing
+├── proxy_manager.py   ← Auto proxy fetch, test, ngrok integration
+├── proxy_server.py    ← Your own ngrok proxy server
+├── report.py          ← HTML + JSON report generation
+├── run.sh             ← Interactive menu
+└── requirements.txt
 ```
 
 ---
 
-## ⚠️ Legal notice
+## 🖥️ Menu
 
-This tool is intended **only for scanning your own email address** to find your own registered accounts. Do not use it on email addresses that are not yours.
+```
+[1] Quick scan
+[2] Scan + HTML report
+[3] Scan + JSON report
+[4] Full scan  (HTML + JSON + verbose)
+[5] Start own ngrok proxy server
+[6] Scan using own ngrok proxy
+[7] Exit
+```
 
 ---
+
+## 🌐 Platforms (88 total)
+
+| Category | Platforms |
+|----------|-----------|
+| **Social** (16) | Facebook, Twitter/X, Instagram, TikTok, Snapchat, Pinterest, Reddit, Tumblr, VK, Flickr, Foursquare, Quora, Meetup, Mastodon, Minds, MeWe |
+| **Gaming** (11) | Twitch, Steam, Epic Games, Roblox, Ubisoft, EA/Origin, Battle.net, PlayStation, Xbox/Microsoft, Minecraft, GOG |
+| **Tech** (8) | GitHub, GitLab, Gravatar, Codecademy, HackerNews, Stack Overflow, Bitbucket, npm |
+| **Communication** (7) | Discord, Skype, Zoom, Slack, Telegram, Signal, Teams |
+| **Music** (6) | Spotify, SoundCloud, Last.fm, Deezer, Apple Music, Bandcamp |
+| **Creative** (6) | Adobe, Behance, DeviantArt, Canva, 500px, Figma |
+| **Cloud** (5) | Dropbox, Google Drive, OneDrive, iCloud, Box |
+| **Finance** (5) | PayPal, Coinbase, Binance, Kraken, Revolut |
+| **Productivity** (5) | Notion, Evernote, Trello, Asana, Monday.com |
+| **Professional** (5) | LinkedIn, Xing, Freelancer, Upwork, Fiverr |
+| **Video** (4) | YouTube, Vimeo, Dailymotion, Twitch |
+| **Shopping** (4) | Etsy, eBay, Amazon, Shopify |
+| **Streaming** (3) | Netflix, Hulu, Disney+ |
+| **Travel** (3) | Airbnb, Booking.com, Uber |
+
+---
+
+## 🔎 OSINT Features
+
+| Feature | Details |
+|---------|---------|
+| **Provider** | Gmail, Outlook, ProtonMail, GMX, iCloud, 20+ more |
+| **MX Record** | DNS check — can the domain receive email? |
+| **WHOIS** | Domain creation date, registrar, country |
+| **Gravatar** | Name, username, location, bio, linked accounts, URLs, avatar |
+
+---
+
+## 🔄 Proxy Modes
+
+| Mode | How |
+|------|-----|
+| **Own ngrok proxy** | Menu `[5]` to start server, `[6]` to scan through it |
+| **Manual file** | `-p proxies.txt` (one proxy per line) |
+| **Auto** | Fetched + tested from public lists automatically |
+
+### Own ngrok proxy setup
+1. Free token at [dashboard.ngrok.com](https://dashboard.ngrok.com/get-started/your-authtoken)
+2. Menu `[5]` → enter token → server starts
+3. Copy the ngrok URL
+4. Menu `[6]` → paste URL → scan
+
+---
+
+## ⚙️ Manual usage
+
+```bash
+python3 emailsint.py your@email.com
+python3 emailsint.py your@email.com --html report.html -o report.json -v
+python3 emailsint.py your@email.com -p proxies.txt
+
+PROXY_URL=https://xxxx.ngrok-free.app PROXY_AUTH=emailsint2024 \
+  python3 emailsint.py your@email.com --html report.html
+```
+
+---
+
+## ⚠️ Legal
+
+For your own email address only.
 
 ## 📄 License
 
