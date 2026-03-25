@@ -24,6 +24,7 @@ REQUEST_COUNT = 0
 SCAN_RESULTS  = []
 SCAN_EMAIL    = ""
 SCAN_RUNNING  = False
+SCAN_META     = {}   # provider, mx, whois, gravatar, started
 
 # ─── HTML Dashboard ───────────────────────────────────────────────────────────
 DASHBOARD_HTML = """<!DOCTYPE html>
@@ -449,17 +450,85 @@ def build_dashboard() -> str:
     notfound = total - found - errors
     uptime   = int(time.time() - START_TIME)
 
-    # Email banner
+    # Email banner + meta info
     if SCAN_EMAIL:
         status_part = ""
         if SCAN_RUNNING:
             status_part = '<span class="scanning-badge"><span class="spin">⟳</span> Scanning…</span>'
-        email_banner = f"""
-        <div class="email-banner">
-          <span class="label">E-Mail</span>
-          <span class="address">{SCAN_EMAIL}</span>
-          {status_part}
-        </div>"""
+
+        meta_rows = ""
+        if SCAN_META:
+            provider = SCAN_META.get("provider", "")
+            mx       = SCAN_META.get("mx", {})
+            whois    = SCAN_META.get("whois", {})
+            gravatar = SCAN_META.get("gravatar", {})
+            total_p  = SCAN_META.get("platforms", "")
+
+            mx_val  = mx.get("primary_mx", "—") if mx.get("valid") else "✘ Nicht erreichbar"
+            mx_col  = "#22c55e" if mx.get("valid") else "#ef4444"
+            reg     = whois.get("created", "—") if "error" not in whois else "—"
+            registrar = whois.get("registrar", "—") if "error" not in whois else "—"
+
+            grav_block = ""
+            if gravatar.get("found"):
+                gname      = gravatar.get("displayName") or gravatar.get("username") or ""
+                gloc       = gravatar.get("location", "")
+                avatar_url = gravatar.get("avatar", "")
+                loc_html   = ('<div style="font-size:12px;color:#64748b">📍 ' + gloc + '</div>') if gloc else ""
+                grav_block = (
+                    '<div style="display:flex;align-items:center;gap:10px;margin-top:12px;'
+                    'padding:12px;background:rgba(124,106,247,0.08);'
+                    'border:1px solid rgba(124,106,247,0.2);border-radius:8px">'
+                    '<img src="' + avatar_url + '?s=48" '
+                    'style="width:48px;height:48px;border-radius:50%;flex-shrink:0">'
+                    '<div>'
+                    '<div style="font-weight:600;color:#a78bfa">' + gname + '</div>'
+                    + loc_html +
+                    '<div style="font-size:11px;color:#64748b;margin-top:2px">Gravatar Profil gefunden ✔</div>'
+                    '</div></div>'
+                )
+
+            meta_rows = (
+                '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));'
+                'gap:10px;margin-top:12px">'
+                '<div style="background:rgba(255,255,255,0.03);border:1px solid #1e1e2e;'
+                'border-radius:8px;padding:10px">'
+                '<div style="font-size:10px;color:#64748b;text-transform:uppercase;'
+                'letter-spacing:1.5px;margin-bottom:4px">Provider</div>'
+                '<div style="font-size:13px;font-weight:600">' + provider + '</div>'
+                '</div>'
+                '<div style="background:rgba(255,255,255,0.03);border:1px solid #1e1e2e;'
+                'border-radius:8px;padding:10px">'
+                '<div style="font-size:10px;color:#64748b;text-transform:uppercase;'
+                'letter-spacing:1.5px;margin-bottom:4px">MX Record</div>'
+                '<div style="font-size:13px;font-weight:600;color:' + mx_col + '">' + mx_val + '</div>'
+                '</div>'
+                '<div style="background:rgba(255,255,255,0.03);border:1px solid #1e1e2e;'
+                'border-radius:8px;padding:10px">'
+                '<div style="font-size:10px;color:#64748b;text-transform:uppercase;'
+                'letter-spacing:1.5px;margin-bottom:4px">Domain seit</div>'
+                '<div style="font-size:13px;font-weight:600">' + reg + '</div>'
+                '</div>'
+                '<div style="background:rgba(255,255,255,0.03);border:1px solid #1e1e2e;'
+                'border-radius:8px;padding:10px">'
+                '<div style="font-size:10px;color:#64748b;text-transform:uppercase;'
+                'letter-spacing:1.5px;margin-bottom:4px">Registrar</div>'
+                '<div style="font-size:12px;font-weight:600">' + registrar[:28] + '</div>'
+                '</div>'
+                '</div>'
+                + grav_block
+            )
+
+        email_banner = (
+            '<div class="email-banner" style="flex-direction:column;align-items:stretch">'
+            '<div style="display:flex;align-items:center;gap:12px">'
+            '<span class="label">E-Mail</span>'
+            '<span class="address">' + SCAN_EMAIL + '</span>'
+            + status_part +
+            '</div>'
+            + meta_rows +
+            '</div>'
+        )
     else:
         email_banner = ""
 
@@ -534,7 +603,7 @@ async def handle_results_api(request: web.Request) -> web.Response:
 
 async def handle_push_result(request: web.Request) -> web.Response:
     """Scanner pushes individual results via POST /push."""
-    global SCAN_EMAIL, SCAN_RUNNING
+    global SCAN_EMAIL, SCAN_RUNNING, SCAN_META
     auth = request.headers.get("X-Proxy-Auth", "")
     if auth != AUTH_TOKEN:
         return web.Response(status=403, text="Forbidden")
@@ -546,8 +615,11 @@ async def handle_push_result(request: web.Request) -> web.Response:
             SCAN_RUNNING = data["running"]
         if "result" in data:
             SCAN_RESULTS.append(data["result"])
+        if "meta" in data:
+            SCAN_META = data["meta"]
         if "reset" in data and data["reset"]:
             SCAN_RESULTS.clear()
+            SCAN_META = {}
         return web.json_response({"ok": True})
     except Exception as e:
         return web.Response(status=400, text=str(e))
