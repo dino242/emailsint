@@ -7,6 +7,9 @@ CYAN='\033[0;36m'
 WHITE='\033[1;37m'
 RESET='\033[0m'
 
+PROXY_PID=""
+PROXY_URL_FILE="/tmp/emailsint_proxy_url"
+
 setup() {
     echo -e "${CYAN}  [*] Checking Python3...${RESET}"
     if ! command -v python3 &>/dev/null; then
@@ -15,7 +18,7 @@ setup() {
     echo -e "${CYAN}  [*] Installing packages...${RESET}"
     pip3 install -q aiohttp colorama dnspython python-whois 2>/dev/null || \
     pip3 install -q aiohttp colorama dnspython 2>/dev/null
-    chmod +x emailsint.py proxy_server.py
+    chmod +x emailsint.py proxy_server.py 2>/dev/null
     echo -e "${GREEN}  [✔] Ready!${RESET}"
     sleep 1
 }
@@ -33,6 +36,17 @@ show_banner() {
     echo -e "${CYAN}  ║       ${YELLOW}v3.0 — Email OSINT Tool${CYAN}                   ║${RESET}"
     echo -e "${CYAN}  ╚══════════════════════════════════════════════════╝${RESET}"
     echo ""
+
+    # Show proxy status in banner if running
+    if [ -f "$PROXY_URL_FILE" ]; then
+        SAVED_URL=$(cat "$PROXY_URL_FILE" 2>/dev/null)
+        if [ -n "$SAVED_URL" ]; then
+            echo -e "${GREEN}  ✔ Proxy aktiv: ${WHITE}${SAVED_URL}${RESET}"
+            echo -e "${GREEN}  ✔ Dashboard:   ${WHITE}${SAVED_URL}${RESET}"
+            echo ""
+        fi
+    fi
+
     echo -e "${WHITE}  40+ platforms · Gravatar OSINT · MX · WHOIS · Ngrok Proxy${RESET}"
     echo ""
 }
@@ -45,9 +59,10 @@ show_menu() {
     echo -e "${WHITE}  │  ${GREEN}[2]${WHITE} Scan + HTML report                     │${RESET}"
     echo -e "${WHITE}  │  ${GREEN}[3]${WHITE} Scan + JSON report                     │${RESET}"
     echo -e "${WHITE}  │  ${GREEN}[4]${WHITE} Full scan  (HTML + JSON + verbose)     │${RESET}"
-    echo -e "${WHITE}  │  ${YELLOW}[5]${WHITE} Start own ngrok proxy server           │${RESET}"
-    echo -e "${WHITE}  │  ${YELLOW}[6]${WHITE} Scan using own ngrok proxy             │${RESET}"
-    echo -e "${WHITE}  │  ${RED}[7]${WHITE} Exit                                   │${RESET}"
+    echo -e "${WHITE}  │  ${YELLOW}[5]${WHITE} Proxy starten + Dashboard              │${RESET}"
+    echo -e "${WHITE}  │  ${YELLOW}[6]${WHITE} Scan via Proxy (mit Dashboard)         │${RESET}"
+    echo -e "${WHITE}  │  ${RED}[7]${WHITE} Proxy stoppen                          │${RESET}"
+    echo -e "${WHITE}  │  ${RED}[8]${WHITE} Exit                                   │${RESET}"
     echo -e "${WHITE}  └──────────────────────────────────────────────┘${RESET}"
     echo ""
 }
@@ -69,6 +84,12 @@ pause() {
     read -r
 }
 
+get_proxy_url() {
+    if [ -f "$PROXY_URL_FILE" ]; then
+        cat "$PROXY_URL_FILE" 2>/dev/null
+    fi
+}
+
 option_1() {
     ask_email || return
     echo ""
@@ -84,7 +105,6 @@ option_2() {
     echo ""
     python3 emailsint.py "$EMAIL" --html "$HTMLFILE"
     echo -e "${GREEN}  [✔] Saved: ${HTMLFILE}${RESET}"
-    echo -e "${CYAN}  [i] Cloud Shell: open Editor → click the file to preview${RESET}"
     pause
 }
 
@@ -113,46 +133,119 @@ option_4() {
 }
 
 option_5() {
+    # Stop old proxy if running
+    if [ -n "$PROXY_PID" ] && kill -0 "$PROXY_PID" 2>/dev/null; then
+        echo -e "${YELLOW}  [*] Stoppe alten Proxy (PID: $PROXY_PID)...${RESET}"
+        kill "$PROXY_PID" 2>/dev/null
+        pkill -f "ngrok" 2>/dev/null
+        sleep 1
+    fi
+    rm -f "$PROXY_URL_FILE"
+
     echo ""
-    echo -e "${CYAN}  Starting ngrok proxy server...${RESET}"
-    echo -e "${WHITE}  Get your free token at: https://dashboard.ngrok.com/get-started/your-authtoken${RESET}"
-    echo -ne "${YELLOW}  ▶ ngrok authtoken: ${RESET}"
+    echo -e "${CYAN}  ┌─────────────────────────────────────────────┐${RESET}"
+    echo -e "${CYAN}  │  Ngrok Proxy + Dashboard Setup               │${RESET}"
+    echo -e "${CYAN}  │  Token holen: dashboard.ngrok.com            │${RESET}"
+    echo -e "${CYAN}  └─────────────────────────────────────────────┘${RESET}"
+    echo ""
+    echo -ne "${YELLOW}  ▶ Ngrok Authtoken: ${RESET}"
     read -r TOKEN
     if [ -z "$TOKEN" ]; then
-        echo -e "${RED}  [!] No token entered.${RESET}"
+        echo -e "${RED}  [!] Kein Token eingegeben.${RESET}"
         pause
         return
     fi
+
     echo ""
-    echo -e "${CYAN}  [*] Starting proxy server in background...${RESET}"
-    NGROK_TOKEN="$TOKEN" python3 proxy_server.py &
+    echo -e "${CYAN}  [*] Starte Proxy-Server im Hintergrund...${RESET}"
+
+    # Start proxy_server.py — it handles ngrok itself and writes URL to file
+    NGROK_TOKEN="$TOKEN" PROXY_URL_FILE="$PROXY_URL_FILE" \
+        python3 proxy_server.py &
     PROXY_PID=$!
-    echo -e "${GREEN}  [✔] Proxy server started (PID: $PROXY_PID)${RESET}"
-    echo -e "${CYAN}  [i] The ngrok URL will appear above. Copy it for option [6].${RESET}"
-    echo -e "${YELLOW}  [i] Run 'kill $PROXY_PID' to stop the proxy server.${RESET}"
+
+    echo -e "${CYAN}  [*] Warte auf ngrok-Tunnel${RESET}"
+
+    # Wait up to 30s for proxy_server.py to write the URL
+    for i in $(seq 1 30); do
+        sleep 1
+        printf "${CYAN}.${RESET}"
+        if [ -f "$PROXY_URL_FILE" ]; then
+            URL=$(cat "$PROXY_URL_FILE")
+            if [ -n "$URL" ]; then
+                echo ""
+                echo ""
+                echo -e "${GREEN}  ╔══════════════════════════════════════════════╗${RESET}"
+                echo -e "${GREEN}  ║  ✔  ngrok Tunnel aktiv!                     ║${RESET}"
+                echo -e "${GREEN}  ║                                              ║${RESET}"
+                echo -e "${GREEN}  ║  📊 Dashboard: ${WHITE}${URL}${GREEN}  ║${RESET}"
+                echo -e "${GREEN}  ║  🔑 Auth:      ${WHITE}emailsint2024${GREEN}             ║${RESET}"
+                echo -e "${GREEN}  ║  🔌 PID:       ${WHITE}${PROXY_PID}${GREEN}                          ║${RESET}"
+                echo -e "${GREEN}  ╚══════════════════════════════════════════════╝${RESET}"
+                echo ""
+                echo -e "${CYAN}  → Öffne den Link im Browser um Scan-Ergebnisse zu sehen!${RESET}"
+                pause
+                return
+            fi
+        fi
+    done
+
+    echo ""
+    echo -e "${RED}  [!] ngrok Tunnel konnte nicht gestartet werden.${RESET}"
+    echo -e "${YELLOW}  [i] Token korrekt? Prüfe: dashboard.ngrok.com${RESET}"
     pause
 }
 
 option_6() {
-    echo ""
-    echo -ne "${YELLOW}  ▶ Ngrok proxy URL (e.g. https://xxxx.ngrok-free.app): ${RESET}"
-    read -r PURL
+    PURL=$(get_proxy_url)
+
     if [ -z "$PURL" ]; then
-        echo -e "${RED}  [!] No URL entered.${RESET}"
-        pause
-        return
+        echo ""
+        echo -e "${YELLOW}  [!] Kein aktiver Proxy gefunden.${RESET}"
+        echo -e "${CYAN}  [i] Starte zuerst den Proxy mit Option [5].${RESET}"
+        echo ""
+        echo -ne "${YELLOW}  Oder manuelle URL eingeben (leer = Abbrechen): ${RESET}"
+        read -r PURL
+        if [ -z "$PURL" ]; then
+            pause
+            return
+        fi
+    else
+        echo ""
+        echo -e "${GREEN}  [✔] Nutze aktiven Proxy: ${WHITE}${PURL}${RESET}"
     fi
-    echo -ne "${YELLOW}  ▶ Auth token [Emaisint - dino242]: ${RESET}"
-    read -r PAUTH
-    PAUTH="${PAUTH:-emailsint2024}"
+
     ask_email || return
+
     echo -ne "${YELLOW}  ▶ HTML filename [report.html]: ${RESET}"
     read -r HTMLFILE
     HTMLFILE="${HTMLFILE:-report.html}"
+
     echo ""
-    PROXY_URL="$PURL" PROXY_AUTH="$PAUTH" \
+    PROXY_URL="$PURL" PROXY_AUTH="emailsint2024" \
         python3 emailsint.py "$EMAIL" --html "$HTMLFILE" -v
+
+    echo ""
+    echo -e "${GREEN}  [✔] Scan fertig! Ergebnisse live auf:${RESET}"
+    echo -e "${WHITE}  → ${PURL}${RESET}"
     pause
+}
+
+option_7() {
+    if [ -n "$PROXY_PID" ] && kill -0 "$PROXY_PID" 2>/dev/null; then
+        kill "$PROXY_PID" 2>/dev/null
+        pkill -f "ngrok" 2>/dev/null
+        rm -f "$PROXY_URL_FILE"
+        PROXY_PID=""
+        echo -e "${GREEN}  [✔] Proxy gestoppt.${RESET}"
+    else
+        pkill -f "proxy_server.py" 2>/dev/null
+        pkill -f "ngrok" 2>/dev/null
+        rm -f "$PROXY_URL_FILE"
+        PROXY_PID=""
+        echo -e "${YELLOW}  [i] Kein aktiver Proxy gefunden (oder bereits gestoppt).${RESET}"
+    fi
+    sleep 1
 }
 
 setup
@@ -161,7 +254,7 @@ while true; do
     show_banner
     show_menu
 
-    echo -ne "${WHITE}  ▶ Choose option [1-7]: ${RESET}"
+    echo -ne "${WHITE}  ▶ Choose option [1-8]: ${RESET}"
     read -r CHOICE
     echo ""
 
@@ -172,12 +265,19 @@ while true; do
         4) option_4 ;;
         5) option_5 ;;
         6) option_6 ;;
-        7)
+        7) option_7 ;;
+        8)
+            # Clean up on exit
+            if [ -n "$PROXY_PID" ]; then
+                kill "$PROXY_PID" 2>/dev/null
+                pkill -f "ngrok" 2>/dev/null
+            fi
+            rm -f "$PROXY_URL_FILE"
             echo -e "${CYAN}  Goodbye!${RESET}"
             exit 0
             ;;
         *)
-            echo -e "${RED}  [!] Invalid — choose 1-7.${RESET}"
+            echo -e "${RED}  [!] Invalid — choose 1-8.${RESET}"
             sleep 1
             ;;
     esac
