@@ -1,7 +1,7 @@
 # emailsint 🔍
 
 > Find which platforms are registered with your email address.  
-> Pure scraping — no API keys needed. **88 platforms** checked.
+> Pure scraping — no API keys needed. **88 platforms** checked
 
 ---
 
@@ -13,7 +13,10 @@ git clone https://github.com/dino242/emailsint.git && cd emailsint && bash run.s
 
 ---
 
-## 📁 File Structure
+## 📁 Infos about the Repo
+
+This repository is an E-Mail OSINT Tool for finding an Account linked to an social media account (e.g Twitter, Tiktok or Instagram etc.).
+
 
 ```
 emailsint/
@@ -27,7 +30,11 @@ emailsint/
 ├── run.sh             ← Interactive menu
 └── requirements.txt
 ```
+This is still being made have patience for further maintenance.
 
+**Languages used:**
+
+- <img src="https://www.python.org/static/community_logos/python-logo-master-v3-TM-flattened.png" alt="Python Logo" width="200">
 ---
 
 ## 🖥️ Menu
@@ -85,7 +92,7 @@ emailsint/
 | **Auto** | Fetched + tested from public lists automatically |
 
 ### Own ngrok proxy setup
-1. Free token at [dashboard.ngrok.com](https://dashboard.ngrok.com/get-started/your-authtoken)
+1. Free token at [Ngrok Dashboard](https://dashboard.ngrok.com/get-started/your-authtoken)
 2. Menu `[5]` → enter token → server starts
 3. Copy the ngrok URL
 4. Menu `[6]` → paste URL → scan
