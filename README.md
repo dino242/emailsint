@@ -34,7 +34,8 @@ This is still being made have patience for further maintenance.
 
 **Languages used:**
 
-<img src="https://www.python.org/static/community_logos/python-logo-master-v3-TM-flattened.png" alt="Python Logo" width="200">
+<img width="512" height="512" alt="image" src="https://github.com/user-attachments/assets/8b94b60e-1060-4e54-84b2-9c567b760de3" />
+
 ---
 
 ## 🖥️ Menu
