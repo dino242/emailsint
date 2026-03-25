@@ -34,7 +34,8 @@ This is still being made have patience for further maintenance.
 
 **Languages used:**
 
-<img width="512" height="512" alt="image" src="https://github.com/user-attachments/assets/8b94b60e-1060-4e54-84b2-9c567b760de3" />
+Python
+Shell
 
 ---
 
@@ -115,8 +116,4 @@ PROXY_URL=https://xxxx.ngrok-free.app PROXY_AUTH=emailsint2024 \
 
 ## ⚠️ Legal
 
-For your own email address only.
-
-## 📄 License
-
-MIT
+For your own email address only. (Or not lol)
