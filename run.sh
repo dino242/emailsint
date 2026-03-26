@@ -28,7 +28,7 @@ show_banner() {
     echo -e "${CYAN}  ║  ${WHITE}| _|| |\\/| |/ _ \\ | || |__\\__ \\ _|| .\` | | |  ${CYAN}  ║${RESET}"
     echo -e "${CYAN}  ║  ${WHITE}|___|_|  |_/_/ \\_\\___|____|___/___|_|\\_| |_|  ${CYAN}  ║${RESET}"
     echo -e "${CYAN}  ║                                                  ║${RESET}"
-    echo -e "${CYAN}  ║       ${YELLOW}v3.0 — Email OSINT · Ngrok Dashboard${CYAN}      ║${RESET}"
+    echo -e "${CYAN}  ║       ${YELLOW}v3.0 — Via localhost or Ngrok Dashboard${CYAN}      ║${RESET}"
     echo -e "${CYAN}  ╚══════════════════════════════════════════════════╝${RESET}"
     echo ""
 
@@ -36,7 +36,7 @@ show_banner() {
         URL=$(cat "$PROXY_URL_FILE" 2>/dev/null)
         if [ -n "$URL" ]; then
             echo -e "${GREEN}  ╔══════════════════════════════════════════════════╗${RESET}"
-            echo -e "${GREEN}  ║  ✔  Proxy & Dashboard aktiv                      ║${RESET}"
+            echo -e "${GREEN}  ║  ✔  Proxy & Dashboard active                      ║${RESET}"
             echo -e "${GREEN}  ║  📊 ${WHITE}${URL}${GREEN}  ║${RESET}"
             echo -e "${GREEN}  ╚══════════════════════════════════════════════════╝${RESET}"
             echo ""
@@ -48,8 +48,8 @@ show_menu() {
     echo -e "${WHITE}  ┌──────────────────────────────────────────────┐${RESET}"
     echo -e "${WHITE}  │                    MENU                      │${RESET}"
     echo -e "${WHITE}  ├──────────────────────────────────────────────┤${RESET}"
-    echo -e "${WHITE}  │  ${GREEN}[1]${WHITE} Ngrok Token setzen & Server starten   │${RESET}"
-    echo -e "${WHITE}  │  ${RED}[2]${WHITE} Server stoppen                        │${RESET}"
+    echo -e "${WHITE}  │  ${GREEN}[1]${WHITE} Set the Ngrok token and start server   │${RESET}"
+    echo -e "${WHITE}  │  ${RED}[2]${WHITE} Stop the server                        │${RESET}"
     echo -e "${WHITE}  │  ${RED}[3]${WHITE} Exit                                  │${RESET}"
     echo -e "${WHITE}  └──────────────────────────────────────────────┘${RESET}"
     echo ""
@@ -72,15 +72,15 @@ option_start() {
 
     echo ""
     echo -e "${CYAN}  ┌──────────────────────────────────────────────┐${RESET}"
-    echo -e "${CYAN}  │  Ngrok Authtoken eingeben                    │${RESET}"
-    echo -e "${CYAN}  │  Holen: dashboard.ngrok.com/get-started      │${RESET}"
+    echo -e "${CYAN}  │  Input your ngrok authtoken                  │${RESET}"
+    echo -e "${CYAN}  │  Get from: https://dashboard.ngrok.com/get-started      │${RESET}"
     echo -e "${CYAN}  └──────────────────────────────────────────────┘${RESET}"
     echo ""
     echo -ne "${YELLOW}  ▶ Ngrok Authtoken: ${RESET}"
     read -r TOKEN
 
     if [ -z "$TOKEN" ]; then
-        echo -e "${RED}  [!] Kein Token eingegeben — Abbruch.${RESET}"
+        echo -e "${RED}  [!] No token set - cancelling.${RESET}"
         pause
         return
     fi
@@ -92,7 +92,7 @@ option_start() {
         python3 proxy_server.py &
     PROXY_PID=$!
 
-    echo -ne "${CYAN}  [*] Warte auf Tunnel${RESET}"
+    echo -ne "${CYAN}  [*] Waiting for tunnel${RESET}"
 
     for i in $(seq 1 35); do
         sleep 1
@@ -104,7 +104,7 @@ option_start() {
                 echo ""
                 echo -e "${GREEN}  ╔══════════════════════════════════════════════════╗${RESET}"
                 echo -e "${GREEN}  ║                                                  ║${RESET}"
-                echo -e "${GREEN}  ║  ✔  Tunnel aktiv! Dashboard erreichbar unter:   ║${RESET}"
+                echo -e "${GREEN}  ║  ✔  Tunnel activated URLs:   ║${RESET}"
                 echo -e "${GREEN}  ║                                                  ║${RESET}"
                 echo -e "${WHITE}  ║     ${URL}${GREEN}  ║${RESET}"
                 echo -e "${GREEN}  ║                                                  ║${RESET}"
@@ -118,7 +118,7 @@ option_start() {
     done
 
     echo ""
-    echo -e "${RED}  [!] Tunnel konnte nicht gestartet werden.${RESET}"
+    echo -e "${RED}  [!] Tunnel wasn't able to start.${RESET}"
     echo -e "${YELLOW}  [i] Token korrekt? → dashboard.ngrok.com${RESET}"
     pause
 }
@@ -135,7 +135,7 @@ option_stop() {
     sleep 1
 }
 
-# ── Bootstrap ─────────────────────────────────────────────────────────────────
+# Bootstrap or sum shit
 setup
 
 while true; do
